@@ -1,4 +1,5 @@
 import type { EventID, ViewModel, CalendarEvent } from "@svar-ui/calendar-store";
+import { decodeId } from "@svar-ui/calendar-store";
 
 export interface ResizeOptions {
 	dx: number;
@@ -16,7 +17,7 @@ export function startResize(
 	dragEl: HTMLElement,
 	e: MouseEvent,
 	eventId: EventID,
-	opts: ResizeOptions
+	opts: ResizeOptions,
 ): void {
 	const origStyle = dragEl.style.cssText;
 	const origTop = parseFloat(dragEl.style.top) || 0;
@@ -56,7 +57,8 @@ export function startResize(
 		const finalBottom =
 			origTop + (parseFloat(dragEl.style.height) || dragEl.offsetHeight);
 
-		const original = opts.getEvent(eventId);
+		const eventInfo = decodeId(eventId);
+		const original = opts.getEvent(eventInfo.id);
 		if (original) {
 			// x100: center of the element's column
 			const finalLeft = parseFloat(dragEl.style.left) || 0;
@@ -69,15 +71,16 @@ export function startResize(
 				x100,
 				endY100,
 				{ end: original.end },
-				true
+				true,
 			);
 
 			if (endPartial.end instanceof Date) {
 				const payload: Record<string, any> = {
-					id: original.id,
+					id: eventInfo.id,
+					rawId: eventId,
 					event: { end: endPartial.end },
 				};
-				opts.exec("update-event", payload);
+				opts.exec("move-event", payload);
 			}
 		}
 

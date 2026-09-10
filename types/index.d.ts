@@ -3,16 +3,20 @@ import type { ViewConfig, ToolbarItem } from "@svar-ui/calendar-store";
 
 export type ViewOption = { id: string; label: string };
 
+export type CalendarPoint = { clientX: number; clientY: number };
+
 export type CalendarApi = {
 	getState: () => any;
 	getReactiveState: () => any;
-	getBrandmark: () => any;
 	exec: (action: string, data: any) => void;
 	fmt: (format: string) => (date: Date) => string;
 	getEvent: (id: string | number) => any;
 };
 
-export type CalendarContextApi = CalendarApi;
+export type CalendarContextApi = CalendarApi & {
+	getBrandmark: () => any;
+	isSmall: () => boolean;
+};
 
 export type CalendarInstanceApi = CalendarApi & {
 	getStores: () => { data: any };
@@ -31,17 +35,24 @@ export declare const Calendar: DefineComponent<{
 	view?: string;
 	views?: (string | ViewConfig)[];
 	toolbar?: { buttons?: ToolbarItem[]; css?: string } | null;
-	cellClass?: (date: Date, view: string, section: string) => string;
-	eventClass?: (event: any, mode: string) => string;
+	cellCss?: (date: Date, view: string, section: string) => string;
+	eventCss?: (event: any, mode: string) => string;
 	eventContent?: any;
 	date?: Date;
 	recurring?: boolean;
+	history?: boolean;
 	tooltip?: any;
 	eventPopup?: any;
+	eventProjection?: any;
 }>;
 
 export declare const CalendarPanel: DefineComponent<{
-	calendars: { id: string | number; label: string; active?: boolean; css?: string }[];
+	calendars: {
+		id: string | number;
+		label: string;
+		active?: boolean;
+		css?: string;
+	}[];
 	accessor?: string;
 	open?: boolean;
 	onchange?: (detail: {
@@ -65,6 +76,13 @@ export declare const Editor: DefineComponent<{
 	items?: any[];
 	placement?: "sidebar" | "modal";
 	layout?: "columns" | "default";
+	focus?: boolean;
+	css?: string;
+	topBar?: any;
+	autoSave?: boolean;
+	onchange?: (e: any) => void;
+	onsave?: (e: any) => void;
+	onaction?: (e: any) => void;
 }>;
 
 export declare const Willow: DefineComponent<{
@@ -77,7 +95,7 @@ export declare const WillowDark: DefineComponent<{
 
 export declare const version: string;
 
-export declare function getEditorItems(): any[];
+export declare function getEditorItems(recurring?: boolean): any[];
 export declare function getToolbarItems(): ToolbarItem[];
 export declare function getMenuOptions(): any[];
 export declare function parseICal(text: string): any[];
@@ -95,13 +113,20 @@ export {
 	ResourcesViewModel,
 	YearViewModel,
 	registerCalendarView,
+	toTimeZone,
+	fromTimeZone,
+	DynamicLoader,
 } from "@svar-ui/calendar-store";
 export type {
 	ToolbarItem,
 	CalendarEvent,
+	EditorData,
 	CellContext,
 	EventContext,
 	EventContentMode,
+	EventOverflowMode,
+	SectionUI,
 	CellCss,
 	EventCss,
+	HistoryState,
 } from "@svar-ui/calendar-store";

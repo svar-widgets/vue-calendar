@@ -1,12 +1,7 @@
 <script setup>
 import { ref, inject } from "vue";
 import { getData } from "../data.js";
-import {
-	Calendar,
-	ContextMenu,
-	Editor,
-	getMenuOptions,
-} from "../../src/";
+import { Calendar, ContextMenu, Editor, getMenuOptions } from "../../src/";
 
 const helpers = inject("wx-helpers");
 
@@ -18,7 +13,7 @@ const options = [
 	{ id: "my-action", text: "My action", icon: "wxi-empty" },
 ];
 
-function onclick({ action, context }) {
+function onclick({ action }) {
 	if (action.id === "my-action") {
 		helpers.showNotice({ text: "`My action` clicked", type: "success" });
 	}

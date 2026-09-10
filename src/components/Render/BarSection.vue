@@ -31,7 +31,12 @@ function style(p) {
 function css(p) {
 	const base = p.event.css || "";
 	const dynamic = props.eventCss
-		? props.eventCss({ event: p.event, view: props.view, section: props.section, mode: "bars" })
+		? props.eventCss({
+				event: p.event,
+				view: props.view,
+				section: props.section,
+				mode: "bars",
+			})
 		: "";
 	return base + (dynamic ? " " + dynamic : "");
 }
@@ -85,6 +90,9 @@ function css(p) {
 	color: var(--wx-color-font);
 	box-shadow: none;
 	border-radius: 0;
+}
+.wx-bar-single-day.wx-dragging {
+	background-color: var(--wx-background);
 }
 .wx-bar-single-day:hover {
 	background-color: var(--wx-color-secondary-hover);

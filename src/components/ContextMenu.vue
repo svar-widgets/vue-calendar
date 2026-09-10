@@ -17,6 +17,7 @@ const props = defineProps({
 });
 
 let activeId = null;
+let rawId = null;
 
 // set locale
 let l = inject("wx-i18n", undefined);
@@ -27,7 +28,7 @@ if (!l) {
 const _ = l.getGroup("eventCalendar");
 
 function applyLocale(opts) {
-	return opts.map(op => {
+	return opts.map((op) => {
 		op = { ...op };
 		if (op.text) op.text = _(op.text);
 		if (op.subtext) op.subtext = _(op.subtext);
@@ -41,10 +42,10 @@ function getOptions() {
 	return applyLocale(base);
 }
 
-function itemResolver(rawId, ev) {
-	if (!rawId || !props.api) return null;
+function itemResolver(id, ev) {
+	if (!id || !props.api) return null;
 
-	const event = props.api.getEvent(rawId);
+	const event = props.api.getEvent(id);
 	if (!event) return null;
 
 	if (props.resolver) {
@@ -53,6 +54,7 @@ function itemResolver(rawId, ev) {
 	}
 
 	activeId = event.id;
+	rawId = id;
 	return event;
 }
 
@@ -63,9 +65,9 @@ function menuAction(ev) {
 	const id = typeof activeId === "object" ? activeId.id : activeId;
 
 	if (action.id === "edit-event") {
-		props.api.exec("select-event", { id });
+		props.api.exec("select-event", { id, rawId });
 	} else if (action.id === "delete-event") {
-		props.api.exec("delete-event", { id });
+		props.api.exec("delete-event", { id, rawId });
 	}
 
 	props.onclick?.(ev);

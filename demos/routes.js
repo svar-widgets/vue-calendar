@@ -5,6 +5,7 @@ import ContextMenu from "./cases/ContextMenu.vue";
 import Styling from "./cases/Styling.vue";
 import DayView from "./cases/DayView.vue";
 import WeekView from "./cases/WeekView.vue";
+import CombinedScale from "./cases/CombinedScale.vue";
 import MonthView from "./cases/MonthView.vue";
 import Filter from "./cases/Filter.vue";
 import CalendarPanel from "./cases/CalendarPanel.vue";
@@ -14,6 +15,8 @@ import EditorComments from "./cases/Editor.vue";
 import Tooltip from "./cases/Tooltip.vue";
 import EventPopup from "./cases/EventPopup.vue";
 import EventContent from "./cases/EventContent.vue";
+import DragToCalendar from "./cases/DragToCalendar.vue";
+import Responsive from "./cases/Responsive.vue";
 
 
 export const links = [
@@ -21,7 +24,13 @@ export const links = [
 		group: "",
 		items: [
 			["/base/:skin", "Basic Calendar", BasicInit, { file: "BasicInit" }],
-			["/calendar-panel/:skin", "Calendar Panel", CalendarPanel, { file: "CalendarPanel" }],
+			[
+				"/calendar-panel/:skin",
+				"Calendar Panel",
+				CalendarPanel,
+				{ file: "CalendarPanel" },
+			],
+			["/responsive/:skin", "Mobile mode", Responsive, { file: "Responsive" }],
 		],
 	},
 	{
@@ -37,15 +46,30 @@ export const links = [
 		items: [
 			["/filter/:skin", "Filter Events", Filter, { file: "Filter" }],
 			["/tooltip/:skin", "Event Tooltip", Tooltip, { file: "Tooltip" }],
-			["/event-card/:skin", "Event Preview", EventPopup, { file: "EventPopup" }],
-			["/context-menu/:skin", "Context Menu", ContextMenu, { file: "ContextMenu" }],
+			[
+				"/event-card/:skin",
+				"Event Preview",
+				EventPopup,
+				{ file: "EventPopup" },
+			],
+			[
+				"/context-menu/:skin",
+				"Context Menu",
+				ContextMenu,
+				{ file: "ContextMenu" },
+			],
 		],
 	},
 	{
 		group: "Configuration",
 		items: [
 			["/toolbar/:skin", "Toolbar", Toolbar, { file: "Toolbar" }],
-			["/event-content/:skin", "Templates", EventContent, { file: "EventContent" }],
+			[
+				"/event-content/:skin",
+				"Templates",
+				EventContent,
+				{ file: "EventContent" },
+			],
 			["/editor-comments/:skin", "Editor", EditorComments, { file: "Editor" }],
 			["/styling/:skin", "Styling", Styling, { file: "Styling" }],
 			["/locales/:skin", "Locales", Locales, { file: "Locales" }],
@@ -54,8 +78,24 @@ export const links = [
 	{
 		group: "Integration",
 		items: [
-			["/backend/:skin", "Saving to Backend", SaveToBackend, { file: "SaveToBackend" }],
-			["/ical/:skin", "iCal Import/Export", ICalImportExport, { file: "ICalImportExport" }],
+			[
+				"/backend/:skin",
+				"Saving to Backend",
+				SaveToBackend,
+				{ file: "SaveToBackend" },
+			],
+			[
+				"/drag-to-calendar/:skin",
+				"Drag to Calendar",
+				DragToCalendar,
+				{ file: "DragToCalendar" },
+			],
+			[
+				"/ical/:skin",
+				"iCal Import/Export",
+				ICalImportExport,
+				{ file: "ICalImportExport" },
+			],
 		],
 	},
 ];

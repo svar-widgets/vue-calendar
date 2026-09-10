@@ -23,10 +23,23 @@ const props = defineProps({
 </script>
 
 <template>
-	<ListSection v-if="section.mode === 'list'" :primitives="section.primitives" :event-content="eventContent" />
-	<YearSection v-else-if="section.mode === 'year'" :section="section" :tooltip="tooltip" :event-content="eventContent" />
+	<ListSection
+		v-if="section.mode === 'list'"
+		:primitives="section.primitives"
+		:event-content="eventContent"
+	/>
+	<YearSection
+		v-else-if="section.mode === 'year'"
+		:section="section"
+		:tooltip="tooltip"
+		:event-content="eventContent"
+	/>
 	<template v-else-if="measured">
-		<div v-if="scrollHeight !== null" class="wx-scroll-inner" :style="{ height: scrollHeight + 'px' }">
+		<div
+			v-if="scrollHeight !== null"
+			class="wx-scroll-inner"
+			:style="{ height: scrollHeight + 'px' }"
+		>
 			<GridSection
 				v-if="section.mode === 'grid' && section.cells"
 				:primitives="section.primitives"
@@ -38,6 +51,7 @@ const props = defineProps({
 				:event-content="eventContent"
 				:view="view"
 				:section="section.name"
+				:event-overflow="section.ui?.eventOverflow"
 				:onoverflow="onoverflow"
 			/>
 			<template v-else>
@@ -91,6 +105,7 @@ const props = defineProps({
 				:event-content="eventContent"
 				:view="view"
 				:section="section.name"
+				:event-overflow="section.ui?.eventOverflow"
 				:onoverflow="onoverflow"
 			/>
 			<template v-else>

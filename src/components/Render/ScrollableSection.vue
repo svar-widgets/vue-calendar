@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, inject, onMounted, onUnmounted } from "vue";
+import { ref, computed, inject, onMounted, onUnmounted, toRaw } from "vue";
 import { subscribe } from "@svar-ui/lib-vue";
 import { drag } from "../../directives/drag.js";
 import { clickevent } from "../../directives/clickevent.js";
@@ -7,7 +7,9 @@ import { clickdate } from "../../directives/clickdate.js";
 import { Popup } from "@svar-ui/vue-core";
 import Headers from "./Headers.vue";
 import SectionContent from "./SectionContent.vue";
-import { useEventOverlay } from "./useEventOverlay.js";
+import EventProjection from "./EventProjection.vue";
+import { resolveEventPosition } from "./resolveEventPosition";
+import { useEventOverlay } from "../useEventOverlay.js";
 
 const props = defineProps({
 	data: {},
@@ -18,6 +20,7 @@ const props = defineProps({
 	tooltip: { default: undefined },
 	eventPopup: { default: undefined },
 	readonly: { default: undefined },
+	eventProjection: { default: undefined },
 });
 
 const api = inject("calendar-api");
@@ -28,10 +31,10 @@ const section = computed(() => props.data[0]);
 const xHeaders = computed(() => section.value?.xHeaders ?? null);
 const yHeaders = computed(() => section.value?.yHeaders ?? null);
 const showXHeaders = computed(
-	() => xHeaders.value !== null && section.value?.xVisible !== false
+	() => xHeaders.value !== null && section.value?.xVisible !== false,
 );
 const showYHeaders = computed(
-	() => yHeaders.value !== null && section.value?.yVisible !== false
+	() => yHeaders.value !== null && section.value?.yVisible !== false,
 );
 
 const contentEl = ref(null);
@@ -86,9 +89,30 @@ function getMinContentHeight() {
 const minW = computed(() => getMinContentWidth());
 const minH = computed(() => getMinContentHeight());
 
+const projection = computed(() => {
+	const p = props.eventProjection;
+	if (!p || !p.htmlEvent) return null;
+	const event = resolveEventPosition(
+		p.htmlEvent,
+		p.event,
+		section.value,
+		contentEl.value,
+		dx.value,
+		dy.value,
+		_view.value,
+		document,
+	);
+	if (!event) return null;
+	// store calculated props on the original projection object
+	Object.assign(toRaw(p).event, event);
+	return _view.value
+		.projectEvent(event)
+		.find((item) => item.section === section.value.name);
+});
+
 const overlay = useEventOverlay(
-	id => api.getEvent(id),
-	() => (section.value?.mode === "boxes" ? "right-start" : "bottom-start")
+	(id) => api.getEvent(id),
+	() => (section.value?.mode === "boxes" ? "right-start" : "bottom-start"),
 );
 
 // trackScroll exists in Popup but is missing from its .d.ts
@@ -141,10 +165,7 @@ const vClickdate = {
 				'wx-has-y-headers': showYHeaders,
 			}"
 		>
-			<div
-				v-if="showXHeaders && showYHeaders"
-				class="wx-corner"
-			></div>
+			<div v-if="showXHeaders && showYHeaders" class="wx-corner"></div>
 			<div v-if="showXHeaders" class="wx-x-headers-sticky">
 				<Headers :headers="xHeaders" direction="x" />
 			</div>
@@ -200,6 +221,12 @@ const vClickdate = {
 					:view="view"
 					:tooltip="tooltip"
 				/>
+				<EventProjection
+					v-if="section && projection"
+					:primitives="projection.primitives"
+					:dx="dx"
+					:dy="dy"
+				/>
 			</div>
 		</div>
 
@@ -209,10 +236,7 @@ const vClickdate = {
 			:style="`position:fixed;left:${overlay.mousePos.value.x + 12}px;top:${overlay.mousePos.value.y + 16}px;z-index:10000;pointer-events:none`"
 			aria-hidden="true"
 		>
-			<component
-				:is="tooltip"
-				:event="overlay.tooltipState.value.event"
-			/>
+			<component :is="tooltip" :event="overlay.tooltipState.value.event" />
 		</div>
 
 		<Popup

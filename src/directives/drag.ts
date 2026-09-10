@@ -5,6 +5,7 @@ import type {
 	SectionMode,
 	ViewModel,
 } from "@svar-ui/calendar-store";
+import { decodeId } from "@svar-ui/calendar-store";
 import { startResize } from "./dragresize.js";
 import { getID } from "@svar-ui/lib-dom";
 
@@ -118,7 +119,7 @@ export function drag(node: HTMLElement, options: DragOptions) {
 			const id = getID(moveEl);
 			moveEl = null;
 			movePending = false;
-			if (!id) return;
+			if (id == null) return;
 			startResize(node, el, e, id, {
 				dx: opts.dx,
 				dy: opts.dy,
@@ -262,8 +263,9 @@ export function drag(node: HTMLElement, options: DragOptions) {
 			return;
 		}
 
-		const eventId = getID(moveEl);
-		const original = opts.getEvent(eventId);
+		const rawId = getID(moveEl);
+		const eventInfo = decodeId(rawId);
+		const original = opts.getEvent(eventInfo.id);
 
 		if (!original) {
 			resetMove();
@@ -311,10 +313,11 @@ export function drag(node: HTMLElement, options: DragOptions) {
 				const newEnd = new Date(newStart.getTime() + duration);
 
 				const payload: Record<string, any> = {
-					id: original.id,
+					id: eventInfo.id,
+					rawId,
 					event: { start: newStart, end: newEnd },
 				};
-				opts.exec("update-event", payload);
+				opts.exec("move-event", payload);
 			}
 
 			resetMove();
@@ -351,15 +354,16 @@ export function drag(node: HTMLElement, options: DragOptions) {
 				x100,
 				y100,
 				{ start: original.start },
-				true
+				true,
 			);
 			if (partial.start instanceof Date) {
 				partial.end = new Date(partial.start.getTime() + duration);
 				const payload: Record<string, any> = {
-					id: original.id,
+					id: eventInfo.id,
+					rawId,
 					event: partial,
 				};
-				opts.exec("update-event", payload);
+				opts.exec("move-event", payload);
 			}
 		}
 
@@ -538,9 +542,7 @@ export function drag(node: HTMLElement, options: DragOptions) {
 						(createXUnits[0].ui!.date as Date).getTime()
 					: 86400000;
 
-			const rowStart = (
-				createYUnits[anchorYIdx].ui!.date as Date
-			).getTime();
+			const rowStart = (createYUnits[anchorYIdx].ui!.date as Date).getTime();
 			const start = new Date(rowStart + startXIdx * xStepMs);
 			const end = new Date(rowStart + (endXIdx + 1) * xStepMs);
 
@@ -563,14 +565,14 @@ export function drag(node: HTMLElement, options: DragOptions) {
 				x100,
 				startY100,
 				{},
-				true
+				true,
 			);
 			const endPartial = opts.model.toPositionEnd(
 				opts.sectionName,
 				x100,
 				endY100,
 				{},
-				true
+				true,
 			);
 
 			if (
@@ -600,14 +602,14 @@ export function drag(node: HTMLElement, options: DragOptions) {
 				startX100,
 				y100,
 				{},
-				true
+				true,
 			);
 			const endPartial = opts.model.toPositionEnd(
 				opts.sectionName,
 				endX100,
 				y100,
 				{},
-				true
+				true,
 			);
 
 			if (

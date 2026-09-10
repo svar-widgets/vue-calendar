@@ -16,6 +16,7 @@ import { CalendarStore } from "@svar-ui/calendar-store";
 // ui
 import Layout from "./Layout.vue";
 
+
 // incoming parameters
 const props = defineProps({
 	events: {},
@@ -29,8 +30,10 @@ const props = defineProps({
 	eventContent: { default: undefined },
 	date: { default: undefined },
 	recurring: { default: undefined },
+	history: { type: Boolean, default: false },
 	tooltip: { default: undefined },
 	eventPopup: { default: undefined },
+	eventProjection: { default: undefined },
 });
 
 const attrs = useAttrs();
@@ -54,6 +57,7 @@ const dataStore = new CalendarStore(writable, {
 	recurring: props.recurring ?? false,
 	weekStart: rawLocale?.calendar?.weekStart ?? 1,
 	dateFormat: fmt,
+	history: props.history,
 });
 
 // define event route
@@ -92,12 +96,12 @@ const api = {
 };
 
 const viewOptions = computed(() =>
-	(props.views ?? ["day", "week", "month"]).map(v => {
+	(props.views ?? ["day", "week", "month"]).map((v) => {
 		if (typeof v === "string") {
 			return { id: v };
 		}
 		return { ...v };
-	})
+	}),
 );
 
 // common API available in components
@@ -107,12 +111,19 @@ const stateStore = {
 	exec: firstInRoute.exec.bind(firstInRoute),
 	getEvent,
 	fmt,
+	getBrandmark: () => dataStore.getBrandmark(),
 };
 provide("calendar-api", stateStore);
 
+
 let init_once = true;
+let lastOptions = null;
 const reinitStore = () => {
-	dataStore.configureViews(viewOptions.value);
+	if (lastOptions !== viewOptions.value) {
+		lastOptions = viewOptions.value;
+		dataStore.configureViews(viewOptions.value);
+	}
+
 	dataStore.init({
 		currentView: props.view ?? "day",
 		currentDate: props.date,
@@ -122,6 +133,7 @@ const reinitStore = () => {
 	if (init_once && props.init) {
 		props.init(api);
 		init_once = false;
+		dataStore.postInit();
 	}
 };
 
@@ -132,7 +144,7 @@ watch(
 	() => {
 		reinitStore();
 	},
-	{ deep: true }
+	{ deep: true },
 );
 
 defineExpose({
@@ -161,6 +173,8 @@ defineExpose({
 		:tooltip="tooltip"
 		:event-popup="eventPopup"
 		:readonly="readonly ?? false"
+		:history="history"
+		:event-projection="eventProjection"
 	>
 		<slot v-if="$slots.default" />
 	</Layout>

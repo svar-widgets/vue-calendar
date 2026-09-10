@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed, watchEffect } from 'vue';
-import { setID } from '@svar-ui/lib-dom';
+import { ref, computed, watchEffect } from "vue";
+import { setID } from "@svar-ui/lib-dom";
 
 const props = defineProps({
 	primitives: { type: Array, default: () => [] },
@@ -12,6 +12,7 @@ const props = defineProps({
 	eventContent: {},
 	view: { type: String },
 	section: { type: String },
+	eventOverflow: { type: String, default: "more" },
 	onoverflow: { type: Function },
 });
 
@@ -41,23 +42,20 @@ const rowLayout = computed(() => {
 	for (const [y, info] of rowInfo) {
 		const groupHeight = props.dy * info.height - dayLabelHeight;
 		// Only reserve space for "+more" label if lanes don't all fit
-		const allFit =
-			Math.floor(groupHeight / fullLaneHeight) >= info.totalLanes;
+		const allFit = Math.floor(groupHeight / fullLaneHeight) >= info.totalLanes;
 		const maxVisible = allFit
 			? info.totalLanes
 			: Math.max(
 					0,
-					Math.floor(
-						(groupHeight - moreLabelHeight) / fullLaneHeight
-					)
+					Math.floor((groupHeight - moreLabelHeight) / fullLaneHeight),
 				);
-		const isExpanded = expandedRows.value.has(y);
+		const isExpanded =
+			props.eventOverflow === "expand" || expandedRows.value.has(y);
 
 		let extraHeight = 0;
 		if (isExpanded && info.totalLanes > maxVisible) {
 			// Extra pixels needed beyond the normal row height
-			const neededHeight =
-				dayLabelHeight + info.totalLanes * fullLaneHeight;
+			const neededHeight = dayLabelHeight + info.totalLanes * fullLaneHeight;
 			const normalHeight = props.dy * info.height;
 			extraHeight = Math.max(0, neededHeight - normalHeight);
 		}
@@ -91,7 +89,7 @@ function getRowOffset(y) {
 // Total height — only set when rows are expanded to avoid sub-pixel overflow
 const totalExtra = computed(() => rowExtraOffsets.value.totalExtra);
 const totalHeight = computed(() =>
-	totalExtra.value > 0 ? props.dy * 100 + totalExtra.value : null
+	totalExtra.value > 0 ? props.dy * 100 + totalExtra.value : null,
 );
 
 const hasOverflow = computed(() => totalExtra.value > 0);
@@ -167,34 +165,39 @@ function barStyle(p) {
 function formatTime(date) {
 	const h = date.getHours();
 	const m = date.getMinutes();
-	if (m === 0) return `${h % 12 || 12}${h < 12 ? 'am' : 'pm'}`;
-	return `${h % 12 || 12}:${String(m).padStart(2, '0')}${h < 12 ? 'am' : 'pm'}`;
+	if (m === 0) return `${h % 12 || 12}${h < 12 ? "am" : "pm"}`;
+	return `${h % 12 || 12}:${String(m).padStart(2, "0")}${h < 12 ? "am" : "pm"}`;
 }
 
 function eventLabel(p) {
-	return p.event.text || ' ';
+	return p.event.text || " ";
 }
 
 function eventTime(p) {
 	if (p.isMultiDay === false) {
 		return `${formatTime(p.event.start)} `;
 	}
-	return '';
+	return "";
 }
 
 function dateStr(date) {
 	const y = date.getFullYear();
-	const m = String(date.getMonth() + 1).padStart(2, '0');
-	const d = String(date.getDate()).padStart(2, '0');
+	const m = String(date.getMonth() + 1).padStart(2, "0");
+	const d = String(date.getDate()).padStart(2, "0");
 	return `${y}-${m}-${d}`;
 }
 
 function css(p) {
-	const base = p.event.css || '';
+	const base = p.event.css || "";
 	const dynamic = props.eventCss
-		? props.eventCss({ event: p.event, view: props.view, section: props.section, mode: 'grid' })
-		: '';
-	return base + (dynamic ? ' ' + dynamic : '');
+		? props.eventCss({
+				event: p.event,
+				view: props.view,
+				section: props.section,
+				mode: "grid",
+			})
+		: "";
+	return base + (dynamic ? " " + dynamic : "");
 }
 
 function cellStyle(cell) {
@@ -361,6 +364,9 @@ function toggleRow(y) {
 	color: var(--wx-color-font);
 	box-shadow: none;
 	border-radius: 0;
+}
+.wx-bar-single-day.wx-dragging {
+	background-color: var(--wx-background);
 }
 .wx-bar-single-day:hover {
 	background-color: var(--wx-color-secondary-hover);

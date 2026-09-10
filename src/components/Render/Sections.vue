@@ -1,17 +1,28 @@
 <script setup>
 defineOptions({ name: "CalendarRenderSections" });
 
-import { ref, computed, watchEffect, inject, onMounted, onUnmounted, nextTick } from 'vue';
-import { subscribe } from '@svar-ui/lib-vue';
-import { Popup } from '@svar-ui/vue-core';
-import Headers from './Headers.vue';
-import SectionContent from './SectionContent.vue';
-import { useEventOverlay } from './useEventOverlay.js';
-import { drag } from '../../directives/drag.js';
-import { clickevent } from '../../directives/clickevent.js';
-import { clickdate } from '../../directives/clickdate.js';
+import {
+	ref,
+	computed,
+	watchEffect,
+	inject,
+	onMounted,
+	onUnmounted,
+	nextTick,
+	toRaw,
+} from "vue";
+import { subscribe } from "@svar-ui/lib-vue";
+import { Popup } from "@svar-ui/vue-core";
+import Headers from "./Headers.vue";
+import SectionContent from "./SectionContent.vue";
+import EventProjection from "./EventProjection.vue";
+import { resolveEventPosition } from "./resolveEventPosition";
+import { useEventOverlay } from "../useEventOverlay.js";
+import { drag } from "../../directives/drag.js";
+import { clickevent } from "../../directives/clickevent.js";
+import { clickdate } from "../../directives/clickdate.js";
 
-const api = inject('calendar-api');
+const api = inject("calendar-api");
 const reactiveState = api.getReactiveState();
 const _view = subscribe(reactiveState._view);
 
@@ -24,6 +35,7 @@ const props = defineProps({
 	tooltip: {},
 	eventPopup: {},
 	readonly: { type: Boolean, default: false },
+	eventProjection: {},
 });
 
 // Custom directives
@@ -72,7 +84,7 @@ const contentEls = ref({});
 const sizes = ref({});
 const xHeadersEl = ref(undefined);
 const xHeadersHeight = ref(0);
-const gridOverflow = ref(false);
+const gridOverflow = ref({});
 
 function measure() {
 	const next = {};
@@ -139,7 +151,7 @@ function getMinContentHeight(section) {
 	if (!innerLevel || innerLevel.length === 0) return 0;
 	const first = innerLevel[0];
 	const minUnitHeight = first.ui?.minUnitHeight;
-	return typeof minUnitHeight === 'number'
+	return typeof minUnitHeight === "number"
 		? innerLevel.length * minUnitHeight
 		: 0;
 }
@@ -148,11 +160,14 @@ function getMinContentHeight(section) {
 const BAR_LANE_HEIGHT = 28;
 
 function getBarSectionHeight(section) {
-	if (section.mode !== 'bars' || typeof section.size === 'number') return 0;
+	if (section.mode !== "bars" || typeof section.size === "number") return 0;
 	let maxLanes = 0;
 	for (const p of section.primitives) {
 		const lanes = p.totalLanes ?? 1;
 		if (lanes > maxLanes) maxLanes = lanes;
+	}
+	if (!maxLanes && projectionFor(section.name)) {
+		maxLanes = 1;
 	}
 	return maxLanes * BAR_LANE_HEIGHT;
 }
@@ -165,16 +180,51 @@ function dy(name, section) {
 }
 
 function sectionMinHeight(section) {
-	if (typeof section.size !== 'number') {
+	if (typeof section.size !== "number") {
 		return getBarSectionHeight(section);
 	}
 	return getMinContentHeight(section);
 }
 
+const projections = computed(() => {
+	const source = props.eventProjection;
+	if (!source || !source.htmlEvent) return [];
+	let event;
+	for (const item of visibleSections.value) {
+		const el = contentEls.value[item.name];
+		if (!el) continue;
+		event = resolveEventPosition(
+			source.htmlEvent,
+			source.event,
+			item,
+			el,
+			dx(item.name),
+			dy(item.name, item),
+			_view.value,
+			document,
+		);
+		if (event) break;
+	}
+	if (!event) return [];
+	// store calculated props on the original projection object
+	// (toRaw keeps the write out of Vue's reactivity, like untrack in Svelte)
+	Object.assign(toRaw(source.event), event);
+	return _view.value.projectEvent(event);
+});
+
+function projectionFor(section) {
+	// projections can be read re-entrantly while it is being evaluated,
+	// in which case Vue returns the previous (possibly undefined) value
+	return projections.value?.find((item) => item.section === section);
+}
+
 const visibleSections = computed(() =>
 	props.data.filter(
-		(s) => s.size !== 'content-optional' || s.primitives.length > 0
-	)
+		(s) =>
+			s.size !== "content-optional" ||
+			s.primitives.length > 0 ||
+			!!projectionFor(s.name),
+	),
 );
 
 // Sticky prefix: consecutive content-sized sections from the top.
@@ -182,7 +232,7 @@ const stickyCount = computed(() => {
 	let count = 0;
 	for (const s of visibleSections.value) {
 		const sz = s.size ?? 1;
-		if (sz === 'content' || sz === 'content-optional') count++;
+		if (sz === "content" || sz === "content-optional") count++;
 		else break;
 	}
 	return count;
@@ -200,33 +250,38 @@ const stickyOffsets = computed(() => {
 	return offsets;
 });
 
-function onGridOverflow(overflow) {
-	gridOverflow.value = overflow;
+function onGridOverflow(section, overflow) {
+	if (!!gridOverflow.value[section] === overflow) return;
+	gridOverflow.value = { ...gridOverflow.value, [section]: overflow };
 }
 
 const hasYHeaders = computed(() =>
-	visibleSections.value.some((s) => s.yHeaders !== null && s.yVisible !== false)
+	visibleSections.value.some(
+		(s) => s.yHeaders !== null && s.yVisible !== false,
+	),
 );
 
-const xHeaders = computed(() =>
-	visibleSections.value.find((s) => s.xHeaders !== null && s.xVisible !== false)
-		?.xHeaders ?? null
+const xHeaders = computed(
+	() =>
+		visibleSections.value.find(
+			(s) => s.xHeaders !== null && s.xVisible !== false,
+		)?.xHeaders ?? null,
 );
 
 function sectionFlex(section, sticky) {
-	if (sticky) return '0 0 auto';
-	if (section.mode === 'list' || section.mode === 'year') return '0 0 auto';
-	return typeof section.size === 'number' ? '1' : '0 0 auto';
+	if (sticky) return "0 0 auto";
+	if (section.mode === "list" || section.mode === "year") return "0 0 auto";
+	return typeof section.size === "number" ? "1" : "0 0 auto";
 }
 
 const overlay = useEventOverlay(
 	(id) => api.getEvent(id),
 	(el) => {
 		const section = visibleSections.value.find((s) =>
-			sectionEls.value[s.name]?.contains(el)
+			sectionEls.value[s.name]?.contains(el),
 		);
-		return section?.mode === 'boxes' ? 'right-start' : 'bottom-start';
-	}
+		return section?.mode === "boxes" ? "right-start" : "bottom-start";
+	},
 );
 
 // trackScroll exists in Popup but is missing from its .d.ts
@@ -235,7 +290,15 @@ const popupExtra = { trackScroll: true };
 
 <template>
 	<div class="wx-sections">
-		<div v-if="xHeaders" class="wx-x-headers-row" :ref="(el) => { xHeadersEl = el }">
+		<div
+			v-if="xHeaders"
+			class="wx-x-headers-row"
+			:ref="
+				(el) => {
+					xHeadersEl = el;
+				}
+			"
+		>
 			<div v-if="hasYHeaders" class="wx-header-corner"></div>
 			<div class="wx-x-headers-area">
 				<Headers :headers="xHeaders" direction="x" />
@@ -249,16 +312,24 @@ const popupExtra = { trackScroll: true };
 			:class="{
 				'wx-section-last': idx === visibleSections.length - 1,
 				'wx-section-sticky': idx < stickyCount,
-				'wx-section-grid': section.mode === 'grid' && gridOverflow,
+				'wx-section-grid':
+					section.mode === 'grid' && !!gridOverflow[section.name],
 				'wx-has-y-headers': hasYHeaders,
 			}"
 			:style="{
 				flex: sectionFlex(section, idx < stickyCount),
-				minHeight: sectionMinHeight(section) > 0 ? sectionMinHeight(section) + 'px' : undefined,
+				minHeight:
+					sectionMinHeight(section) > 0
+						? sectionMinHeight(section) + 'px'
+						: undefined,
 				top: idx < stickyCount ? (stickyOffsets[idx] ?? 0) + 'px' : undefined,
 				zIndex: idx < stickyCount ? 10 - idx : undefined,
 			}"
-			:ref="(el) => { if (el) sectionEls[section.name] = el }"
+			:ref="
+				(el) => {
+					if (el) sectionEls[section.name] = el;
+				}
+			"
 		>
 			<template v-if="section.yVisible !== false">
 				<div class="wx-y-headers-area">
@@ -269,7 +340,11 @@ const popupExtra = { trackScroll: true };
 
 			<div
 				class="wx-section-content"
-				:ref="(el) => { if (el) contentEls[section.name] = el }"
+				:ref="
+					(el) => {
+						if (el) contentEls[section.name] = el;
+					}
+				"
 				v-drag="{
 					mode: section.mode,
 					dx: dx(section.name),
@@ -310,7 +385,17 @@ const popupExtra = { trackScroll: true };
 					:event-content="eventContent"
 					:view="view"
 					:tooltip="tooltip"
-					:onoverflow="section.mode === 'grid' ? onGridOverflow : undefined"
+					:onoverflow="
+						section.mode === 'grid'
+							? (overflow) => onGridOverflow(section.name, overflow)
+							: undefined
+					"
+				/>
+				<EventProjection
+					v-if="projectionFor(section.name)"
+					:primitives="projectionFor(section.name).primitives"
+					:dx="dx(section.name)"
+					:dy="dy(section.name, section)"
 				/>
 			</div>
 		</div>
@@ -320,8 +405,8 @@ const popupExtra = { trackScroll: true };
 			class="wx-calendar-tooltip"
 			:style="{
 				position: 'fixed',
-				left: (overlay.mousePos.value.x + 12) + 'px',
-				top: (overlay.mousePos.value.y + 16) + 'px',
+				left: overlay.mousePos.value.x + 12 + 'px',
+				top: overlay.mousePos.value.y + 16 + 'px',
 				zIndex: 10000,
 				pointerEvents: 'none',
 			}"

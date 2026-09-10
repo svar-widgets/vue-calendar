@@ -1,6 +1,6 @@
 {
 	"name": "@svar-ui/vue-calendar",
-	"version": "2.6.0",
+	"version": "2.7.0",
 	"description": "SVAR Vue Calendar library",
 	"productTag": "calendar",
 	"type": "module",
@@ -35,27 +35,29 @@
 		"dist-full/index.css"
 	],
 	"dependencies": {
-		"@svar-ui/calendar-ical": "2.6.0",
-		"@svar-ui/calendar-locales": "2.6.0",
-		"@svar-ui/calendar-provider": "2.6.0",
-		"@svar-ui/calendar-store": "2.6.0",
-		"@svar-ui/core-locales": "2.5.3",
-		"@svar-ui/lib-dom": "0.12.2",
+		"@svar-ui/calendar-ical": "2.7.0",
+		"@svar-ui/calendar-locales": "2.7.0",
+		"@svar-ui/calendar-provider": "2.7.0",
+		"@svar-ui/calendar-store": "2.7.0",
+		"@svar-ui/core-locales": "2.6.1",
+		"@svar-ui/lib-dom": "0.14.0",
 		"@svar-ui/lib-vue": "1.1.0",
-		"@svar-ui/lib-state": "1.9.6",
-		"@svar-ui/vue-core": "2.5.1",
-		"@svar-ui/vue-editor": "2.5.0",
-		"@svar-ui/vue-menu": "2.5.1",
-		"@svar-ui/vue-toolbar": "2.5.1"
+		"@svar-ui/lib-state": "1.9.7",
+		"@svar-ui/vue-core": "2.6.1",
+		"@svar-ui/vue-editor": "2.7.0",
+		"@svar-ui/vue-menu": "2.6.1",
+		"@svar-ui/vue-toolbar": "2.6.1"
 	},
 	"peerDependencies": {
 		"vue": "^3.0.0"
 	},
 	"devDependencies": {
-		"@svar-ui/vue-layout": "2.5.0",
-		"@svar-ui/vue-comments": "2.5.1",
-		"@svar-ui/vue-tasklist": "2.5.1",
-		"@svar-ui/vue-filter": "2.5.0",
+		"@svar-ui/vue-comments": "2.6.0",
+		"@svar-ui/vue-excel-import": "2.6.0",
+		"@svar-ui/vue-export-popup": "2.6.0",
+		"@svar-ui/vue-filter": "2.6.0",
+		"@svar-ui/vue-layout": "2.6.0",
+		"@svar-ui/vue-tasklist": "2.6.0",
 		"@vitejs/plugin-vue": "^6.0.1",
 		"eslint": "^9.35.0",
 		"eslint-plugin-vue": "^10.5.1",
@@ -64,7 +66,8 @@
 		"lint-staged": "15.2.10",
 		"prettier": "3.3.3",
 		"vite": "^7.2.2",
-		"vue-router": "^4.6.3"
+		"vue-router": "^4.6.3",
+		"xlsx-writer-lite": "0.3.0"
 	},
 	"homepage": "https://svar.dev/vue/calendar/",
 	"repository": {
@@ -85,5 +88,6 @@
 		"*.{css,md,json}": [
 			"prettier --write"
 		]
-	}
+	},
+	"packageManager": "npm@12.0.2"
 }

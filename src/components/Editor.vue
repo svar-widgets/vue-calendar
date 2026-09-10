@@ -1,24 +1,26 @@
 <script>
 import { Editor as EditorBase, registerEditorItem } from "@svar-ui/vue-editor";
 import DateTimePicker from "./DateTimePicker.vue";
+import EventDatesForm from "./EventDatesForm.vue";
 
 registerEditorItem("date-time-picker", DateTimePicker);
+registerEditorItem("event-dates", EventDatesForm);
 </script>
 
 <script setup>
-import { ref, computed, inject, provide } from "vue";
+import { computed, inject, provide } from "vue";
 import { subscribeLater } from "@svar-ui/lib-vue";
 import { locale } from "@svar-ui/lib-dom";
 import { en } from "@svar-ui/calendar-locales";
 import { en as coreEn } from "@svar-ui/core-locales";
-import { getEditorItems } from "./editorItems.js";
+import { getEditorItems } from "../defaults.js";
 
 defineOptions({ name: "CalendarWidgetEditor" });
 
 const props = defineProps({
 	api: {},
-	items: { default: () => getEditorItems() },
-	placement: { default: "sidebar" },
+	items: { default: undefined },
+	placement: { default: undefined },
 	layout: { default: "default" },
 	focus: { type: Boolean, default: true },
 	css: { default: "" },
@@ -30,7 +32,7 @@ const props = defineProps({
 });
 
 const editorData = subscribeLater(
-	() => props.api?.getReactiveState()?.editorData
+	() => props.api?.getReactiveState()?.editorData,
 );
 
 let l = inject("wx-i18n", undefined);
@@ -45,18 +47,27 @@ function translate(value) {
 }
 
 function applyLocale(list) {
-	return list.map(item => {
+	return list.map((item) => {
 		const next = { ...item };
 		next.label = translate(next.label);
 		return next;
 	});
 }
 
-const generation = ref(1);
-const allDay = computed(() =>
-	generation.value > 0 ? editorData().value?.allDay : false
+const calendarCtx = inject("calendar-api", undefined);
+const finalPlacement = computed(
+	() =>
+		props.placement ?? (calendarCtx?.isCompact() ? "fullscreen" : "sidebar"),
 );
-const cItems = computed(() => applyLocale(props.items));
+
+const useRecurringForm = computed(
+	() =>
+		!!editorData().value?.recurring &&
+		(editorData().value?.recurringMode ?? "series") !== "single",
+);
+const cItems = computed(() =>
+	applyLocale(props.items ?? getEditorItems(useRecurringForm.value)),
+);
 
 const defaultTopBar = {
 	items: [
@@ -72,67 +83,43 @@ const defaultTopBar = {
 	],
 };
 const editorTopBar = computed(() =>
-	props.topBar === undefined ? defaultTopBar : props.topBar
+	props.topBar === undefined ? defaultTopBar : props.topBar,
 );
 const editorCss = computed(() =>
-	["wx-editor-calendar", allDay.value ? "wx-editor-all-day" : "", props.css]
-		.filter(Boolean)
-		.join(" ")
+	["wx-editor-calendar", props.css].filter(Boolean).join(" "),
 );
 
 function handleSave(ev) {
 	props.onsave?.(ev);
 	const data = editorData().value;
 	if (!data) return;
-	props.api.exec("update-event", { id: data.id, event: { ...ev.values } });
-}
-
-function sameDay(a, b) {
-	return (
-		a.getFullYear() === b.getFullYear() &&
-		a.getMonth() === b.getMonth() &&
-		a.getDate() === b.getDate()
-	);
+	const mode = data.recurringMode ?? "series";
+	// a series save must not carry the clicked occurrence's context in
+	// rawId, or the store would treat it as a single-occurrence edit
+	props.api.exec("update-event", {
+		id: data.id,
+		rawId: mode === "series" ? data.id : data.rawId,
+		event: { ...ev.values },
+		...(data.recurringOriginalDate && mode !== "series" ? { mode } : {}),
+	});
 }
 
 function handleChange(ev) {
-	const { key, value, update } = ev;
-	const prev = editorData().value;
-	generation.value++;
-
-	if (prev && key === "start" && !update.allDay) {
-		const oldStart = prev.start;
-		const oldEnd = prev.end;
-		if (
-			oldStart instanceof Date &&
-			oldEnd instanceof Date &&
-			sameDay(oldStart, oldEnd) &&
-			value instanceof Date
-		) {
-			const newEnd = new Date(oldEnd);
-			newEnd.setFullYear(
-				value.getFullYear(),
-				value.getMonth(),
-				value.getDate()
-			);
-			update.end = newEnd;
-		}
-	}
 	props.onchange?.(ev);
 }
 
 function handleDelete() {
 	const data = editorData().value;
 	if (!data) return;
-	props.api.exec("delete-event", { id: data.id });
-	props.api.exec("select-event", { id: null });
+	props.api.exec("delete-event", { id: data.id, rawId: data.rawId });
+	props.api.exec("select-event", { id: null, rawId: null });
 }
 
 function handleAction(ev) {
 	props.onaction?.(ev);
 	const { item } = ev;
 	if (item.id === "close" && !!item.comp) {
-		props.api.exec("select-event", { id: null });
+		props.api.exec("select-event", { id: null, rawId: null });
 	}
 }
 </script>
@@ -147,9 +134,9 @@ function handleAction(ev) {
 		:onchange="handleChange"
 		:onaction="handleAction"
 		:onsave="handleSave"
-		:placement="placement"
+		:placement="finalPlacement"
 		:layout="layout"
-		:values="editorData().value"
+		:values="editorData().value.values"
 		:css="editorCss"
 	/>
 </template>
@@ -157,8 +144,5 @@ function handleAction(ev) {
 <style scoped>
 :global(.wx-sidearea .wx-editor-calendar) {
 	width: 450px;
-}
-:global(.wx-editor-calendar.wx-editor-all-day .wx-timepicker) {
-	visibility: hidden;
 }
 </style>

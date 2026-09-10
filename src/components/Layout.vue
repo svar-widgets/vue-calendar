@@ -2,11 +2,12 @@
 defineOptions({ name: "CalendarComponentsLayout" });
 
 import { Comment, Fragment, Text, computed, inject, useSlots } from "vue";
-import { subscribe } from "@svar-ui/lib-vue";
+import { asDirective, subscribe } from "@svar-ui/lib-vue";
 import Navigation from "./Navigation.vue";
 import Sections from "./Render/Sections.vue";
 import ScrollableSection from "./Render/ScrollableSection.vue";
 
+const COMPACT_WIDTH = 480;
 
 const _ = inject("wx-i18n").getGroup("eventCalendar");
 const slots = useSlots();
@@ -22,6 +23,8 @@ const props = defineProps({
 	eventPopup: { default: undefined },
 	brandmark: { default: undefined },
 	readonly: { default: undefined },
+	history: { type: Boolean, default: false },
+	eventProjection: { default: undefined },
 });
 
 const reactiveState = props.store.getReactiveState();
@@ -31,15 +34,39 @@ const _view = subscribe(reactiveState._view);
 
 const renderMode = computed(() => _view.value?.render);
 
+let isCompact = false;
+// the store prop is the shared calendar-api bag, not owned state — the widget
+// deliberately hangs these accessors on it, as the Svelte original does
+// eslint-disable-next-line vue/no-mutating-props
+props.store.isCompact = () => isCompact;
+
+function observeSize(node) {
+	// eslint-disable-next-line vue/no-mutating-props
+	props.store.getRootNode = () => node;
+	const observer = new ResizeObserver((entries) => {
+		isCompact = entries[0].contentRect.width < COMPACT_WIDTH;
+		node.classList.toggle("wx-calendar--compact", isCompact);
+	});
+
+	observer.observe(node);
+
+	return {
+		destroy: () => observer.disconnect(),
+	};
+}
+
+const vObserveSize = asDirective(observeSize);
+
 const hasRenderableNodes = (nodes = []) =>
 	nodes.some((node) => {
 		if (!node) return false;
 		if (Array.isArray(node)) return hasRenderableNodes(node);
 		if (node.type === Comment) return false;
-		if (node.type === Text) return String(node.children ?? "").trim().length > 0;
+		if (node.type === Text)
+			return String(node.children ?? "").trim().length > 0;
 		if (node.type === Fragment) {
 			return hasRenderableNodes(
-				Array.isArray(node.children) ? node.children : []
+				Array.isArray(node.children) ? node.children : [],
 			);
 		}
 		return true;
@@ -52,12 +79,18 @@ const hasSidebar = computed(() => {
 </script>
 
 <template>
-	<div class="wx-calendar" role="region" :aria-label="_('Calendar')">
+	<div
+		v-observe-size
+		class="wx-calendar"
+		role="region"
+		:aria-label="_('Calendar')"
+	>
 		<Navigation
 			v-if="toolbar !== null"
 			:views="views"
 			:toolbar="toolbar"
 			:readonly="readonly"
+			:history="history"
 		/>
 		<template v-if="hasSidebar">
 			<div class="wx-layout-content">
@@ -79,6 +112,7 @@ const hasSidebar = computed(() => {
 						:tooltip="tooltip"
 						:event-popup="eventPopup"
 						:readonly="readonly"
+						:event-projection="eventProjection"
 					/>
 					<Sections
 						v-else
@@ -90,6 +124,7 @@ const hasSidebar = computed(() => {
 						:tooltip="tooltip"
 						:event-popup="eventPopup"
 						:readonly="readonly"
+						:event-projection="eventProjection"
 					/>
 					<a
 						v-if="brandmark"
@@ -114,6 +149,7 @@ const hasSidebar = computed(() => {
 					:tooltip="tooltip"
 					:event-popup="eventPopup"
 					:readonly="readonly"
+					:event-projection="eventProjection"
 				/>
 				<Sections
 					v-else
@@ -125,6 +161,7 @@ const hasSidebar = computed(() => {
 					:tooltip="tooltip"
 					:event-popup="eventPopup"
 					:readonly="readonly"
+					:event-projection="eventProjection"
 				/>
 				<a
 					v-if="brandmark"

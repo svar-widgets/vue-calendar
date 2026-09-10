@@ -1,8 +1,8 @@
 <script setup>
-import { ref, computed, inject } from 'vue';
-import { Popup } from '@svar-ui/vue-core';
+import { ref, computed, inject } from "vue";
+import { Popup } from "@svar-ui/vue-core";
 
-const _ = inject('wx-i18n').getGroup('eventCalendar');
+const _ = inject("wx-i18n").getGroup("eventCalendar");
 
 const props = defineProps({
 	section: {},
@@ -13,7 +13,7 @@ const props = defineProps({
 const columns = computed(() => props.section.ui?.columns ?? 3);
 const weekStartDay = computed(() => props.section.ui?.weekStartDay ?? 1);
 const months = computed(() => props.section.ui?.months ?? []);
-const weekdayBase = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const weekdayBase = ["S", "M", "T", "W", "T", "F", "S"];
 const weekdays = computed(() => {
 	const shift = ((weekStartDay.value % 7) + 7) % 7;
 	const ordered = [];
@@ -28,7 +28,7 @@ const weekdays = computed(() => {
 });
 
 function dateStr(year, month, day) {
-	return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+	return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 function getDays(month) {
@@ -73,8 +73,8 @@ function hideTooltip() {
 
 function formatTime(date) {
 	return date.toLocaleTimeString(undefined, {
-		hour: '2-digit',
-		minute: '2-digit',
+		hour: "2-digit",
+		minute: "2-digit",
 	});
 }
 
@@ -86,26 +86,19 @@ function formatRange(event) {
 		start.getMonth() !== end.getMonth() ||
 		start.getDate() !== end.getDate()
 	) {
-		return _('Full day');
+		return _("Full day");
 	}
 	return `${formatTime(start)} \u2013 ${formatTime(end)}`;
 }
 
 function eventTitle(event) {
-	return event.text || '';
+	return event.text || "";
 }
 </script>
 
 <template>
-	<div
-		class="wx-year-grid"
-		:style="'grid-template-columns: repeat(' + columns + ', 1fr)'"
-	>
-		<div
-			v-for="month in months"
-			:key="month.month"
-			class="wx-year-month"
-		>
+	<div class="wx-year-grid" :style="'--wx-year-columns: ' + columns">
+		<div v-for="month in months" :key="month.month" class="wx-year-month">
 			<div class="wx-month-label">{{ month.label }}</div>
 			<div class="wx-month-grid">
 				<div
@@ -119,14 +112,27 @@ function eventTitle(event) {
 					<div v-if="day.empty" class="wx-month-day wx-empty"></div>
 					<div
 						v-else
-						:class="['wx-month-day', { 'wx-today': day.today, 'wx-weekend': day.weekend, 'wx-has-events': day.hasEvents }]"
+						:class="[
+							'wx-month-day',
+							{
+								'wx-today': day.today,
+								'wx-weekend': day.weekend,
+								'wx-has-events': day.hasEvents,
+							},
+						]"
 						:data-date="dateStr(month.year, month.month, day.day)"
 						:aria-current="day.today ? 'date' : undefined"
-						@mouseenter="day.hasEvents ? showTooltip($event, day.events) : undefined"
+						@mouseenter="
+							day.hasEvents ? showTooltip($event, day.events) : undefined
+						"
 						@mouseleave="day.hasEvents ? hideTooltip() : undefined"
 					>
 						<span class="wx-day-num">{{ day.day }}</span>
-						<span v-if="day.hasEvents" class="wx-event-dot" aria-hidden="true"></span>
+						<span
+							v-if="day.hasEvents"
+							class="wx-event-dot"
+							aria-hidden="true"
+						></span>
 					</div>
 				</template>
 			</div>
@@ -139,12 +145,14 @@ function eventTitle(event) {
 		at="bottom-start"
 		:oncancel="hideTooltip"
 	>
-		<div
-			:class="['wx-year-tooltip', { 'wx-year-tooltip-custom': !!tooltip }]"
-		>
+		<div :class="['wx-year-tooltip', { 'wx-year-tooltip-custom': !!tooltip }]">
 			<component v-if="tooltip" :is="tooltip" :events="tooltipData.events" />
 			<template v-else>
-				<div v-for="(ev, evIdx) in tooltipData.events" :key="evIdx" class="wx-tooltip-event">
+				<div
+					v-for="(ev, evIdx) in tooltipData.events"
+					:key="evIdx"
+					class="wx-tooltip-event"
+				>
 					<template v-if="eventContent">
 						<div class="wx-tooltip-event-content">
 							<component :is="eventContent" :event="ev" mode="year-tooltip" />
@@ -165,9 +173,14 @@ function eventTitle(event) {
 <style scoped>
 .wx-year-grid {
 	display: grid;
+	grid-template-columns: repeat(var(--wx-year-columns, 3), 1fr);
 	gap: 16px;
 	padding: 16px;
 	position: relative;
+}
+.wx-calendar--compact .wx-year-grid {
+	display: flex;
+	flex-direction: column;
 }
 .wx-month-label {
 	font-weight: var(--wx-font-weight-md);

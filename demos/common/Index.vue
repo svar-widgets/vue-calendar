@@ -27,10 +27,9 @@ const title = ref("");
 const link = ref("");
 const show = ref(true);
 
-
 const windowWidth = ref(window.innerWidth);
-window.addEventListener('resize', () => {
-  windowWidth.value = window.innerWidth;
+window.addEventListener("resize", () => {
+	windowWidth.value = window.innerWidth;
 });
 const isMobileView = computed(() => windowWidth.value < 767);
 
@@ -60,7 +59,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <component v-for="(obj, index) in skins" :key="index" :is="obj.component" />
+	<component v-for="(obj, index) in skins" :key="index" :is="obj.component" />
 
 	<div class="top-layout" :class="{ narrow: isMobileView }">
 		<div class="sidebar" :class="{ active: show }" role="tabpanel">
@@ -72,15 +71,11 @@ onMounted(() => {
 							target="_blank"
 							rel="noopener noreferrer"
 						>
-							<img
-								:src="LogoIcon"
-								alt="Logo icon"
-								class="box-title-img"
-							/>
+							<img :src="LogoIcon" alt="Logo icon" class="box-title-img" />
 						</a>
 						<div class="separator"></div>
 						<a
-							:href="`https://svar.dev/vue/${productLink||productTag}/`"
+							:href="`https://svar.dev/vue/${productLink || productTag}/`"
 							target="_blank"
 							rel="noopener noreferrer"
 						>
@@ -132,7 +127,7 @@ onMounted(() => {
 							>
 								<template #default="{ option }">
 									<svg
-									    v-if="option.id === 'willow-dark'"
+										v-if="option.id === 'willow-dark'"
 										viewBox="0 0 16 16"
 										fill="none"
 										xmlns="http://www.w3.org/2000/svg"
@@ -144,7 +139,7 @@ onMounted(() => {
 										/>
 									</svg>
 									<svg
-									    v-if="option.id === 'willow'"
+										v-if="option.id === 'willow'"
 										viewBox="0 0 16 16"
 										fill="none"
 										xmlns="http://www.w3.org/2000/svg"
@@ -156,10 +151,9 @@ onMounted(() => {
 										/>
 									</svg>
 
-
-								<span v-if="!isMobileView" style="margin-left: 4px">
-								{{ option.label }}
-								</span>
+									<span v-if="!isMobileView" style="margin-left: 4px">
+										{{ option.label }}
+									</span>
 								</template>
 							</Segmented>
 						</div>
@@ -168,7 +162,7 @@ onMounted(() => {
 							<a :href="link" target="_blank" rel="noopener noreferrer">
 								<Button type="secondary" css="toggle-btn link-btn">
 									<div>
-									    <img :src="GitHubLogoIcon" alt="GitHub icon" />
+										<img :src="GitHubLogoIcon" alt="GitHub icon" />
 									</div>
 									<span v-if="!isMobileView">See code on GitHub</span>
 								</Button>
@@ -178,11 +172,19 @@ onMounted(() => {
 				</div>
 			</div>
 			<div class="wrapper-content">
-				<div data-wx-portal-root="true" class="content" :class="`wx-${skin}-theme`">
+				<div
+					data-wx-portal-root="true"
+					class="content"
+					:class="`wx-${skin}-theme`"
+				>
 					<Globals>
-					    <Locale>
-						    <Router :product-tag="productTag" :skin="skin" @onnewpage="updateInfo" />
-					    </Locale>
+						<Locale>
+							<Router
+								:product-tag="productTag"
+								:skin="skin"
+								@onnewpage="updateInfo"
+							/>
+						</Locale>
 					</Globals>
 				</div>
 			</div>
@@ -226,7 +228,7 @@ onMounted(() => {
 }
 
 .top-layout {
-	--demo-framework-color: #fc6519;
+	--demo-framework-color: #079c69;
 	--wx-border: 1px solid var(--demo-chrome-border);
 	--demo-chrome-segmented-selected-shadow: 0 0 7px 0 rgba(66, 69, 76, 0.07);
 	box-sizing: border-box;
@@ -453,11 +455,6 @@ a {
 	border-bottom: var(--wx-border);
 }
 
-.content :deep(h3) {
-	font-size: 18px;
-	margin: 12px 0;
-	font-weight: normal;
-}
 .content :deep(.demo-box) {
 	margin: 20px;
 }

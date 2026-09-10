@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { Calendar, Editor } from "../../src/";
-import { RestDataProvider } from "@svar-ui/calendar-provider";
+import { RestDataProvider } from "../../src/";
 
 const server = "https://calendar-backend.svar.dev";
 const provider = new RestDataProvider(server);
@@ -10,7 +10,7 @@ const api = ref(null);
 const data = ref([]);
 const date = ref(new Date());
 
-provider.getData().then(events => {
+provider.getData().then((events) => {
 	data.value = events;
 	date.value = new Date(events[0].start);
 });

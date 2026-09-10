@@ -15,6 +15,7 @@ import "@svar-ui/vue-tasklist/style.css";
 import "@svar-ui/vue-filter/style.css";
 import "@svar-ui/vue-layout/style.css";
 
+
 const app = createApp(Index, {
 	publicName: "Calendar",
 	productTag: "calendar",

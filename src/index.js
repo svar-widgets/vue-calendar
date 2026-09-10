@@ -18,7 +18,7 @@ export {
 	MonthViewModel,
 } from "@svar-ui/calendar-store";
 
-export { getEditorItems } from "./components/editorItems.js";
+export { getEditorItems } from "./defaults.js";
 export { registerEditorItem } from "@svar-ui/vue-editor";
 export { parseICal, serializeICal } from "@svar-ui/calendar-ical";
 export { RestDataProvider } from "@svar-ui/calendar-provider";

@@ -26,7 +26,12 @@ const isActive = computed(() => {
 </script>
 
 <template>
-	<router-link :key="fullPath" :to="fullPath" class="demo" :class="{ active: isActive }">
+	<router-link
+		:key="fullPath"
+		:to="fullPath"
+		class="demo"
+		:class="{ active: isActive, wip: data[3] && data[3].wip }"
+	>
 		{{ data[1] }}
 		<span v-if="data[3] && data[3].pro" class="pro">PRO</span>
 	</router-link>
@@ -65,5 +70,11 @@ const isActive = computed(() => {
 	font-size: 12px;
 	font-weight: 600;
 	margin-left: auto;
+}
+
+.wip,
+.wip:hover {
+	background-color: #ddd;
+	color: #aaa;
 }
 </style>
