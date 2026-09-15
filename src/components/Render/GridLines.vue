@@ -15,7 +15,7 @@ const props = defineProps({
 				v-for="unit in props.xHeaders[props.xHeaders.length - 1].slice(0, -1)"
 				:key="unit.position"
 				class="wx-grid-line wx-vertical"
-				:style="{ left: dx * (unit.position + unit.size) + 'px' }"
+				:style="{ left: dx * (unit.position + unit.size) - 1 + 'px' }"
 			></div>
 		</template>
 		<template v-if="props.yHeaders">

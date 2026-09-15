@@ -20,7 +20,7 @@
 
 [SVAR Vue Calendar](https://svar.dev/vue/calendar/) is a customizable, interactive calendar component for Vue 3 designed for managing events and schedules. The component ships with multiple views (Day, Week, Month), drag-and-drop interface, an intuitive event editor, and flexible theming. Comes with full TypeScript support, a developer-friendly API, and flexible CSS styling.
 
-The PRO Edition adds Year, Timeline, Agenda, and Resources views, as well as recurring events support. To see the event calendar in action, [try the live demo](https://svar.dev/demos/vue/calendar/). 
+The PRO Edition adds Year, Timeline, Agenda, and Resources views, editable recurring events, timezone support, dynamic loading, and more. To see the event calendar in action, [try the live demo](https://svar.dev/demos/vue/calendar/). 
 
 <div align="center">
 <img src="https://svar.dev/images/github/github-calendar.gif" alt="SVAR Vue Calendar - Event Calendar Preview">
@@ -30,27 +30,36 @@ The PRO Edition adds Year, Timeline, Agenda, and Resources views, as well as rec
 
 The calendar component provides all the essential functionality expected in an online calendar. It is completely customizable and can be quickly integrated into a Vue application that needs event planning and scheduling. Free, open-source edition supports:
 
--   Multiple views: day, week, month
--   Interactive event creation, editing with drag-and-drop and resize
--   Customizable event editor form
--   Toolbar and context menu
--   Configurable week start, working hours and time format
--   Custom event rendering
--   Localization
--   Light and dark themes
--   Fast performance with large datasets
--   iCal import/export
--   Full TypeScript support
+- Multiple views: day, week, month
+- Drag-and-drop to create, move, and resize events
+- Drag external items onto the calendar as events
+- Customizable event editor form
+- Toolbar and context menu
+- Configurable week start, working hours and time format
+- Custom event rendering
+- Localization
+- Light and dark themes
+- Responsive mobile mode
+- High performance with large datasets
+- iCal import/export
+- Import from Excel
+- Full TypeScript support
 
 ### 🚀 PRO Edition
 
-SVAR Vue Calendar is available in open-source and PRO editions. The PRO package includes additional calendar views and recurrence support that extends the open-source API:
+SVAR Vue Calendar is available in open-source and PRO editions. The PRO package adds four calendar views, recurrence support, dynamic loading, and more without changing the component API:
 
 - Agenda view
 - Year view
 - Resources view
 - Timeline view
-- Recurring events with RRULE expansion
+- Editable recurring events
+- Timezone support
+- Multi-resource events
+- Combined scales for Resource view
+- Dynamic loading
+- Undo/redo support
+- Export to PDF, PNG & Excel
 
 Visit the [pricing page](https://svar.dev/vue/calendar/pricing/) for licensing details and feature comparison.
 
@@ -66,23 +75,27 @@ To use the widget, simply import the package and include the component in your V
 
 ```vue
 <script setup>
-import { Calendar } from "@svar-ui/vue-calendar";
+import { Calendar, Willow } from "@svar-ui/vue-calendar";
+import "@svar-ui/vue-calendar/all.css";
 
 const events = [
     {
         id: 1,
-        start_date: new Date(2024, 3, 2, 10, 0),
-        end_date: new Date(2024, 3, 2, 11, 30),
+        start: new Date(2026, 3, 2, 10, 0),
+        end: new Date(2026, 3, 2, 11, 30),
         text: "Project kick-off",
-        details: "Align on scope and milestones.",
     },
 ];
-const date = new Date(2024, 3, 2);
-const mode = "week";
+const date = new Date(2026, 3, 2);
+const view = "week";
 </script>
 
 <template>
-    <Calendar :events="events" :date="date" :mode="mode" />
+    <div style="height: 600px">
+        <Willow>
+            <Calendar :events="events" :date="date" :view="view" />
+        </Willow>
+    </div>
 </template>
 ```
 
@@ -93,7 +106,7 @@ For further instructions, follow the detailed [quick start guide](https://docs.s
 The package exports the following from `@svar-ui/vue-calendar`:
 
 -   `Calendar` — main calendar component
--   `CalendarPanel` — embeddable panel variant
+-   `CalendarPanel` — calendar groups panel with visibility toggles
 -   `Editor` — event editor
 -   `ContextMenu` — context menu
 -   `Willow`, `WillowDark` — themes

@@ -84,4 +84,10 @@ const props = defineProps({
 	color: var(--wx-color-font-alt);
 	padding-top: 2px;
 }
+.wx-scrollable-section .wx-y-header-cell {
+	border-top: 1px solid var(--wx-border-color);
+}
+.wx-scrollable-section .wx-y-header-cell:first-child {
+	border-top: none;
+}
 </style>

@@ -47,7 +47,9 @@ function onRouteChange(path) {
 	const title = matched?.[1] ?? "";
 	const opts = matched?.[3] ?? {};
 	const name = opts.file ?? title;
-	const link = `${baseLink}${name.replace(/\s+/g, "")}.vue`;
+	const link = name.startsWith("pro_")
+		? `${baseLink}`
+		: `${baseLink}${name.replace(/\s+/g, "")}.vue`;
 
 	emit("onnewpage", {
 		page: page,

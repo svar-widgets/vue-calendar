@@ -1,5 +1,10 @@
 import { DefineComponent } from "vue";
-import type { ViewConfig, ToolbarItem } from "@svar-ui/calendar-store";
+import type {
+	ViewConfig,
+	ToolbarItem,
+	CellCss,
+	EventCss,
+} from "@svar-ui/calendar-store";
 
 export type ViewOption = { id: string; label: string };
 
@@ -35,8 +40,8 @@ export declare const Calendar: DefineComponent<{
 	view?: string;
 	views?: (string | ViewConfig)[];
 	toolbar?: { buttons?: ToolbarItem[]; css?: string } | null;
-	cellCss?: (date: Date, view: string, section: string) => string;
-	eventCss?: (event: any, mode: string) => string;
+	cellCss?: CellCss;
+	eventCss?: EventCss;
 	eventContent?: any;
 	date?: Date;
 	recurring?: boolean;

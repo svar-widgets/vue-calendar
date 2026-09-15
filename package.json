@@ -1,6 +1,6 @@
 {
 	"name": "@svar-ui/vue-calendar",
-	"version": "2.7.0",
+	"version": "2.7.1",
 	"description": "SVAR Vue Calendar library",
 	"productTag": "calendar",
 	"type": "module",
@@ -52,12 +52,12 @@
 		"vue": "^3.0.0"
 	},
 	"devDependencies": {
-		"@svar-ui/vue-comments": "2.6.0",
-		"@svar-ui/vue-excel-import": "2.6.0",
-		"@svar-ui/vue-export-popup": "2.6.0",
-		"@svar-ui/vue-filter": "2.6.0",
+		"@svar-ui/vue-comments": "2.6.1",
+		"@svar-ui/vue-excel-import": "2.7.0",
+		"@svar-ui/vue-export-popup": "2.7.0",
+		"@svar-ui/vue-filter": "2.6.1",
 		"@svar-ui/vue-layout": "2.6.0",
-		"@svar-ui/vue-tasklist": "2.6.0",
+		"@svar-ui/vue-tasklist": "2.6.1",
 		"@vitejs/plugin-vue": "^6.0.1",
 		"eslint": "^9.35.0",
 		"eslint-plugin-vue": "^10.5.1",
