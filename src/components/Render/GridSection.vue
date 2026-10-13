@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watchEffect } from "vue";
+import { ref, computed, watchEffect, inject } from "vue";
 import { setID } from "@svar-ui/lib-dom";
 
 const props = defineProps({
@@ -15,6 +15,8 @@ const props = defineProps({
 	eventOverflow: { type: String, default: "more" },
 	onoverflow: { type: Function },
 });
+
+const _ = inject("wx-i18n").getGroup("eventCalendar");
 
 const laneHeight = 22;
 const gap = 2;
@@ -300,7 +302,7 @@ function toggleRow(y) {
 			:style="moreStyle(indicator)"
 			@click="toggleRow(indicator.rowY)"
 		>
-			+{{ indicator.count }} more
+			+{{ indicator.count }} {{ _("more") }}
 		</button>
 	</div>
 </template>
