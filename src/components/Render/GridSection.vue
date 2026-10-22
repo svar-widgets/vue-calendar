@@ -21,6 +21,8 @@ const gap = 2;
 const fullLaneHeight = laneHeight + gap * 2;
 const dayLabelHeight = 20;
 const moreLabelHeight = 18;
+// x/width are fractions of 100 / 7, so adjacent edges may differ by float error
+const overlapEpsilon = 1e-6;
 
 // Track which rows (by y position) are expanded
 const expandedRows = ref(new Set());
@@ -134,7 +136,10 @@ const moreIndicators = computed(() => {
 		if (!hidden) continue;
 		let count = 0;
 		for (const p of hidden) {
-			if (p.x < cell.x + cell.width && p.x + p.width > cell.x) {
+			if (
+				p.x < cell.x + cell.width - overlapEpsilon &&
+				p.x + p.width > cell.x + overlapEpsilon
+			) {
 				count++;
 			}
 		}
